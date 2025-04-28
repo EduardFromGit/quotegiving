@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🌟 Personalized Quote Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      transition: background 1s, color 0.5s;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    }
+
+    .start-screen, .game-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .btn-custom {
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-custom:hover {
+      transform: scale(1.1);
+      background-color: #ff9a9e !important;
+      box-shadow: 0 0 20px #ff9a9e;
+      color: #fff !important;
+    }
+
+    #quote {
+      min-height: 100px;
+      transition: opacity 0.8s;
+    }
+
+    .flower {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      pointer-events: none;
+      background-size: cover;
+      animation: fall 5s linear forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    #musicControl {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      background: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Start Screen -->
+<div id="startScreen" class="start-screen">
+  <h1 class="mb-4">Welcome! 🌟</h1>
+  <input type="text" id="userName" class="form-control mb-3 w-50 shadow" placeholder="Enter your name" style="max-width:300px;">
+  <button class="btn btn-primary btn-custom" onclick="startGame()">Start</button>
+</div>
+
+<!-- Game Screen -->
+<div id="gameScreen" class="game-screen hidden">
+  <div class="card shadow-lg p-4" style="max-width: 700px; animation: fadeIn 1s;">
+    <h2 class="mb-3" id="greeting">Hello!</h2>
+    <p id="quote" class="fs-4 fst-italic">Click the button to get inspired!</p>
+    
+    <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-4">
+      <button class="btn btn-success btn-custom" onclick="generateQuote()">🌸 New Quote</button>
+      <input type="color" id="colorPicker" class="form-control form-control-color shadow" onchange="changeBackground()" title="Pick a background color" style="border-radius:50%; width: 60px; height: 60px;">
+    </div>
+  </div>
+</div>
+
+<button id="musicControl" onclick="toggleMusic()">🎵 Play Music</button>
+
+<audio id="backgroundMusic" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_a6b5b3fa45.mp3?filename=relaxing-music-11734.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  const quotes = [
+    "Believe you can and you're halfway there.", "Your only limit is your mind.", "Dream big. Work hard. Stay focused.",
+    "Success is not for the lazy.", "Doubt kills more dreams than failure ever will.", "Push yourself because no one else will do it for you.",
+    "Stay positive, work hard, make it happen.", "Great things never come from comfort zones.", "Dream bigger. Do bigger.",
+    "Don't watch the clock; do what it does. Keep going.", "Wake up with determination. Sleep with satisfaction.",
+    "If you get tired, learn to rest, not quit.", "Fall seven times, stand up eight.", "Energy flows where attention goes.",
+    "Your dreams don’t work unless you do.", "Success starts with self-discipline.", "Consistency creates greatness.",
+    "Believe in your infinite potential.", "Small steps every day build big results.", "Life rewards action, not intentions.",
+    "You are the artist of your own life. Don't hand the paintbrush to anyone else.", "The future depends on what you do today.",
+    "Success is not just about what you accomplish in your life, it's about what you inspire others to do.",
+    "The only way to do great work is to love what you do.", "Success usually comes to those who are too busy to be looking for it.",
+    "Don't be pushed around by the fears in your mind. Be led by the dreams in your heart.",
+    "The only limit to our realization of tomorrow will be our doubts of today.", "Success is not in what you have, but who you are.",
+    "The best way to predict the future is to create it.", "Success is walking from failure to failure with no loss of enthusiasm.",
+    "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+    "You don't have to be great to start, but you have to start to be great.",
+    "Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful.",
+    "The only place where success comes before work is in the dictionary.",
+    "Success is not about how much money you make, but the difference you make in people's lives.",
+    "Success is not about being the best. It's about always getting better.",
+    "Success is not about how high you have climbed, but how you make a positive difference to the world.",
+    "Believe in yourself,", 
+"Dream big and dare to fail,", 
+"Stay positive, work hard, make it happen,", 
+"Push yourself because no one else is going to do it for you,", 
+"Great things never come from comfort zones,", 
+"Success doesn't just find you; you have to go out and get it,", 
+"Don't stop until you're proud,", 
+"Your limitation—it's only your imagination,", 
+"Work hard in silence; let your success make the noise,", 
+"The harder you work for something, the greater you'll feel when you achieve it,", 
+"Dream it. Wish it. Do it,", 
+"Little things make big days,", 
+"Don't watch the clock; do what it does—keep going,", 
+"Believe you can and you're halfway there,", 
+"Everything you’ve ever wanted is on the other side of fear,", 
+"Opportunities don't happen. You create them,", 
+"It always seems impossible until it’s done,", 
+"The only way to do great work is to love what you do,", 
+"Start where you are. Use what you have. Do what you can,", 
+"Small progress is still progress,", 
+"Don’t limit your challenges. Challenge your limits,", 
+"Success is the sum of small efforts, repeated day in and day out,", 
+"You are capable of amazing things,", 
+"Be stronger than your excuses,", 
+"Wake up with determination. Go to bed with satisfaction,", 
+"Success doesn't come from what you do occasionally; it comes from what you do consistently,", 
+"If it doesn’t challenge you, it won’t change you,", 
+"Focus on your goal. Don’t look in any direction but ahead,", 
+"Don’t be pushed by your problems. Be led by your dreams,", 
+"Stay hungry, stay foolish,", 
+"Hard work beats talent when talent doesn’t work hard,", 
+"Do something today that your future self will thank you for,", 
+"Dream bigger. Do bigger,", 
+"The best time for new beginnings is now,", 
+"Success usually comes to those who are too busy to be looking for it,", 
+"Your future is created by what you do today, not tomorrow,", 
+"Work until your idols become your rivals,", 
+"Be so good they can’t ignore you,", 
+"Action is the foundational key to all success,", 
+"Don't wait for opportunity. Create it,", 
+"Failure is not the opposite of success; it’s part of success,", 
+"You don’t have to be great to start, but you have to start to be great,", 
+"Your only limit is your mind,", 
+"You are stronger than you think,", 
+"Success doesn’t come from comfort zones,", 
+"Good things come to those who hustle,", 
+"Keep going. Everything you need will come to you at the perfect time,", 
+"Success is not for the lazy,", 
+"Set goals. Stay quiet about them. Smash the hell out of them. Clap for your damn self,", 
+"Success is walking from failure to failure with no loss of enthusiasm,", 
+"If people are doubting how far you can go, go so far that you can’t hear them anymore,", 
+"Your dream doesn’t have an expiration date,", 
+"Discipline is the bridge between goals and accomplishment,", 
+"Focus on being productive instead of busy,", 
+"The key to success is to start before you are ready,", 
+"Some people want it to happen, some wish it would happen, others make it happen,", 
+"Success isn’t always about greatness. It’s about consistency,", 
+"Don’t be afraid to give up the good to go for the great,", 
+"You are never too old to set another goal or to dream a new dream,", 
+"Make each day your masterpiece,", 
+"Believe you deserve it and the universe will serve it,", 
+"Success is a series of small wins,", 
+"Don’t decrease the goal. Increase the effort,", 
+"Success is getting what you want. Happiness is wanting what you get,", 
+"Be brave enough to be bad at something new,", 
+"The best way to predict the future is to create it,", 
+"Push yourself because no one else is going to do it for you,", 
+"You didn’t come this far to only come this far,", 
+"Start small. Start now,", 
+"Do it with passion or not at all,", 
+"Small efforts every day lead to big results,", 
+"You miss 100% of the shots you don’t take,", 
+"Nothing will work unless you do,", 
+"Failure will never overtake me if my determination to succeed is strong enough,", 
+"Be fearless in the pursuit of what sets your soul on fire,", 
+"Take the risk or lose the chance,", 
+"Don’t wait. The time will never be just right,", 
+"Everything you can imagine is real,", 
+"It’s going to be hard, but hard does not mean impossible,", 
+"Stars can’t shine without darkness,", 
+"Consistency is what transforms average into excellence,", 
+"Stop doubting yourself. Work hard and make it happen,", 
+"If you’re not willing to risk the unusual, you’ll have to settle for the ordinary,", 
+"Be stronger than your excuses,", 
+"The best view comes after the hardest climb,", 
+"Slow progress is better than no progress,", 
+"The comeback is always stronger than the setback,", 
+"Failure is success in progress,", 
+"Believe in your dreams and they may come true. Believe in yourself and they will,", 
+"You were born to be real, not perfect,", 
+"Don’t tell people your plans. Show them your results,", 
+"If opportunity doesn’t knock, build a door,", 
+"You don’t find the happy life. You make it,", 
+"Success means doing the best we can with what we have,", 
+"Go the extra mile. It’s never crowded,", 
+"Learn as if you will live forever, live like you will die tomorrow,", 
+"Either you run the day, or the day runs you,", 
+"The road to success and the road to failure are almost exactly the same,", 
+"Don’t wish it were easier. Wish you were better,", 
+"Start where you are. Use what you have. Do what you can,", 
+"Success is loving life and daring to live it,", 
+"Don't count the days, make the days count,", 
+"Stay focused. Stay strong. Stay positive,"
+];
+
+  function startGame() {
+    const name = document.getElementById('userName').value.trim();
+    if (name === '') {
+      alert('Please enter your name!');
+      return;
+    }
+    document.getElementById('greeting').textContent = `Hello, ${name}! 🌟`;
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameScreen').classList.remove('hidden');
+  }
+
+  function generateQuote() {
+    const quoteText = document.getElementById('quote');
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    quoteText.style.opacity = 0;
+    setTimeout(() => {
+      quoteText.textContent = quotes[randomIndex];
+      quoteText.style.opacity = 1;
+    }, 300);
+    flowerShower();
+  }
+
+  function changeBackground() {
+    const color = document.getElementById('colorPicker').value;
+    document.body.style.background = color;
+  }
+
+  function flowerShower() {
+    for (let i = 0; i < 20; i++) {
+      const flower = document.createElement('div');
+      flower.classList.add('flower');
+      flower.style.left = Math.random() * window.innerWidth + 'px';
+      flower.style.backgroundImage = `url('https://cdn-icons-png.flaticon.com/512/616/${616400 + Math.floor(Math.random() * 9)}.png')`;
+      document.body.appendChild(flower);
+
+      setTimeout(() => {
+        flower.remove();
+      }, 5000);
+    }
+  }
+
+  let musicPlaying = false;
+  const music = document.getElementById('backgroundMusic');
+
+  function toggleMusic() {
+    if (musicPlaying) {
+      music.pause();
+      document.getElementById('musicControl').textContent = '🎵 Play Music';
+    } else {
+      music.play();
+      document.getElementById('musicControl').textContent = '🔇 Pause Music';
+    }
+    musicPlaying = !musicPlaying;
+  }
+</script>
+
+</body>
+</html>
